@@ -11,9 +11,13 @@ unordered_map<string, int> goods_time_mp;
 // vector<SHOTPATH_DELIVERY> shotpath_delivery;
 int shotpath_berth[10][200][200];
 int shotpath_berth_dis[10][200][200];
+int shotpath_delivery[10][200][200];
+int shotpath_delivery_dis[10][200][200];
 int grid_berth_id[200][200];
 int robot_move_x[] = {0, 0, -1, 1};
 int robot_move_y[] = {1, -1, 0, 0};
+int ship_move_x[] = {0, 1, 0};
+int ship_move_y[] = {2, 1, 0};
 
 
 
@@ -122,6 +126,124 @@ void Init_shotpath_berth(){
 	}
 }
 
-// void Init_shotpath_delivery(){
+int check_path2delivery_point(int x, int y){
+	if(x < 0 || x >= N) return -1;
+    if(y < 0 || y >= N) return -1;
+    char tmp = grid_copy[x][y];
+    // cerr << tmp << endl;
+    // cerr << x << ' ' << y << ' ' << tmp << endl;
+    if(tmp == '*' || tmp == '~' || tmp == 'S' || tmp == 'B' || tmp == 'C' || tmp == 'c' || tmp == 'T' || tmp == 'K') return 1;
+    return -1;
+}
 
-// }
+int check_path2delivery(int x, int y, int direction){
+	if(direction == 0){
+		for(int i = x; i <= x+1; i++){
+			for(int j = y; j <= y+2; j++){
+				if(check_path2delivery_point(i, j) == -1) return -1;
+			}
+		}
+	}
+	else if(direction == 1){
+		for(int i = x - 1; i <= x; i++){
+			for(int j = y-2; j <= y; j++){
+				if(check_path2delivery_point(i, j) == -1) return -1;
+			}
+		}
+	}
+	else if(direction == 2){
+		for(int i = x-2; i <= x; i++){
+			for(int j = y; j <= y+1; j++){
+				// cerr << check_path2delivery_point(i, j) << endl;
+				if(check_path2delivery_point(i, j) == -1) return -1;
+			}
+		}
+	}
+	else if(direction == 3){
+		for(int i = x; i <= x + 2; i++){
+			for(int j = y - 1; j <= y; j++){
+				if(check_path2delivery_point(i, j) == -1) return -1;
+			}
+		}
+	}
+	return 1;
+}
+
+// 根据核心点的坐标和航向判断是否有船体进入主航道
+int check_main_channel(int x, int y, int direction){
+	if(direction == 0){
+		for(int i = x; i <= x+1; i++){
+			for(int j = y; j <= y+2; j++){
+				if(grid_copy[i][j] == '~' || grid_copy[i][j] == 'B' || grid_copy[i][j] == 'K') return 1;
+			}
+		}
+	}
+	else if(direction == 1){
+		for(int i = x; i <= x+2; i++){
+			for(int j = y-1; j <= y; j++){
+				if(grid_copy[i][j] == '~' || grid_copy[i][j] == 'B' || grid_copy[i][j] == 'K') return 1;
+			}
+		}
+	}
+	else if(direction == 2){
+		for(int i = x-2; i <= x; i++){
+			for(int j = y-1; j <= y; j++){
+				if(grid_copy[i][j] == '~' || grid_copy[i][j] == 'B' || grid_copy[i][j] == 'K') return 1;
+			}
+		}
+	}
+	else{
+		for(int i = x-2; i <= x; i++){
+			for(int j = y; j <= y+1; j++){
+				if(grid_copy[i][j] == '~' || grid_copy[i][j] == 'B' || grid_copy[i][j] == 'K') return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+int change_move2direction(int move){
+	if(move == 0) return 0;
+	if(move == 1) return 2;
+	if(move == 2) return 3;
+	if(move == 3) return 1;
+	return -1;
+}
+
+void Init_shotpath_delivery_cal_path(int x, int y, int delivery_id){
+	memset(visits, 0, sizeof(visits));
+	queue<SEA_POINT> q;
+	q.push(SEA_POINT(x, y, 0, 0, -1));
+	visits[x][y] = 1;
+	while(!q.empty()){
+		SEA_POINT now = q.front();
+		q.pop();
+		if(visits[now.x][now.y] == 1 && now.dis < shotpath_delivery_dis[delivery_id][now.x][now.y]){
+			shotpath_delivery_dis[delivery_id][now.x][now.y] = now.dis;
+			shotpath_delivery[delivery_id][now.x][now.y] = get_move_reverse(now.pre_move);
+		}
+		else if(visits[now.x][now.y] == 1) continue;
+		for(int i = 0; i < 4; i++){
+			if(now.pre_move != -1 && get_move_reverse(now.pre_move) == i) continue;
+			int next_x = now.x + robot_move_x[i];
+			int next_y = now.y + robot_move_y[i];
+			if(check_path2delivery(next_x, next_y, change_move2direction(i)) == -1) continue;
+			SEA_POINT next = SEA_POINT(next_x, next_y, now.dis + 1, change_move2direction(i) ,i);
+			if(next.pre_move != i) next.dis = next.dis + 1;
+			if(check_main_channel(next_x, next_y, change_move2direction(i)) == 1) next.dis = next.dis + 1;
+			if(visits[next_x][next_y] == 0){
+				shotpath_delivery_dis[delivery_id][next_x][next_y] = next.dis;
+				shotpath_delivery[delivery_id][next_x][next_y] = get_move_reverse(i);
+			}
+			visits[next_x][next_y] = 1;
+		}
+	}
+}
+
+void Init_shotpath_delivery(){
+	memset(shotpath_delivery_dis, -1, sizeof(shotpath_delivery_dis));
+	memset(shotpath_delivery, -1, sizeof(shotpath_delivery));
+	for(int i = 0; i < delivery_point.size(); i++){
+		Init_shotpath_delivery_cal_path(delivery_point[i].first, delivery_point[i].second, i);
+	}
+}

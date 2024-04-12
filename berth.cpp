@@ -15,6 +15,7 @@ void read_berth(){
         int id;
         scanf("%d", &id);
         scanf("%d%d%d", &berth[id].x, &berth[id].y, &berth[id].loading_speed);
-        robot_berth.push_back(i);
+        // robot_berth.push_back(i);
     }
+    robot_berth.push_back(0);
 }

@@ -20,6 +20,7 @@ void Init()
     ProcessMap();
     read_berth();
     Init_shotpath_berth();
+    // Init_shotpath_delivery();
     scanf("%d", &boat_capacity);
     char okk[100];
     scanf("%s", okk);
@@ -39,6 +40,7 @@ void Input()
         if(val == 0) {
             grid_copy[x][y] = grid[x][y];
             grid_goods[x][y] = grid[x][y];
+            goods_value_mp[int2str(x, y)] = 0;
         }
         else{
             goods.push_back(Goods(x, y, val, frame_id));
@@ -62,26 +64,31 @@ int main()
     {
         // cerr << frame_id << endl;
         Input();
-        if(money >= robot_price && robot_num <= 10){
+        if(money >= robot_price && robot_num < 5){
             printf("lbot %d %d\n", robot_purchase_point[0].first, robot_purchase_point[0].second);
             Init_containers();
         }
 
-        if(money >= boat_price && boat_num < 0){
+        if(money >= boat_price && boat_num < 1){
             printf("lboat %d %d\n", boat_purchase_point[0].first, boat_purchase_point[0].second);
         }
         control_robot(frame_id);
+        control_ship(frame_id);
+        for(int i = 0; i < boat_num; i++){
+            cerr << boat[i].goods_num << ' ';
+        }
+        cerr << endl;
 
         // for(int i = 0; i < robot_num; i ++)
         //     printf("move %d %d\n", i, rand() % 4);
 
-        for(int i = 0; i < boat_num; i ++){
-            int status = abs(rand()) % 2;
-            if(status == 1)
-                printf("ship %d\n", i);
-            else
-                printf("rot %d %d\n", i, rand() % 2);
-        }
+        // for(int i = 0; i < boat_num; i ++){
+        //     int status = abs(rand()) % 2;
+        //     if(status == 1)
+        //         printf("ship %d\n", i);
+        //     else
+        //         printf("rot %d %d\n", i, rand() % 2);
+        // }
         puts("OK");
         fflush(stdout);
     }

@@ -67,6 +67,20 @@ struct POINT{
     }
 };
 
+struct SEA_POINT{
+    int x, y, direction; // 核心点位置和当前的航向， 0表示向右，1表示向下，2表示向左，3表示向上
+    int dis; // 船移动的步骤
+    int pre_move = -1;
+    int now_move = -1;
+    SEA_POINT() {}
+    SEA_POINT(int _, int __, int ___, int ____, int _____){
+        x = _;
+        y = __;
+        dis = ___;
+        direction = ____;
+        pre_move = _____;
+    }
+};
 
 
 extern const int N;
@@ -93,6 +107,8 @@ extern vector<pair<int, int>> delivery_point;
 extern int grid_berth_id[200][200];
 extern int robot_move_x[4];
 extern int robot_move_y[4];
+extern int ship_move_x[3];
+extern int ship_move_y[3];
 
 
 void read_map();
@@ -100,7 +116,7 @@ void Init_shotpath_berth();
 void Init_shotpath_delivery();
 void ProcessMap();
 int get_move_reverse(int move);
-
+int check_path2delivery(int x, int y, int direction);
 
 
 
