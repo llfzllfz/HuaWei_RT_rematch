@@ -87,6 +87,7 @@ extern const int N;
 extern char grid[200][200];
 extern char grid_copy[200][200];
 extern char grid_goods[200][200];
+extern int grid_copy_berth_id[200][200];
 // extern vector<SHOTPATH_BERTH> shotpath_berth;
 // extern vector<SHOTPATH_DELIVERY> shotpath_delivery;
 extern int shotpath_berth[10][200][200];
@@ -117,7 +118,7 @@ void Init_shotpath_delivery();
 void ProcessMap();
 int get_move_reverse(int move);
 int check_path2delivery(int x, int y, int direction);
-
+void Init_berth_id();
 
 
 extern char grid_goods[200][200];

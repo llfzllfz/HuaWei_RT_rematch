@@ -89,6 +89,8 @@ void bfs_find_goods(int robot_index, int frame_id, double pow_index, int region)
                 int value = goods_value_mp[int2str(next_x, next_y)];
                 if(bestPoint.x == -1){
                     // 锁定最近距离的货物到货物最近距离的港口
+                    // if(region == 400)
+                    //     cerr << ' ' << next_x << ' ' << next_y << endl;
                     for(int j = 0; j < robot_berth.size(); j++){
                         int tmp_berth_index = robot_berth[j];
                         if(shotpath_berth_dis[tmp_berth_index][next.x][next.y] == -1) continue;
@@ -104,7 +106,8 @@ void bfs_find_goods(int robot_index, int frame_id, double pow_index, int region)
                     }
                     // cerr << bestPoint.x << endl;
                     // cerr << bestPoint.goods2berth_dis << endl;
-                    // cerr << double(bestPoint.dis + bestPoint.pre_dis) - containers[robot_index] * double(bestPoint.goods2berth_dis) << endl;
+                    // if(region == 400)
+                    //     cerr << double(bestPoint.dis + bestPoint.pre_dis) - containers[robot_index] * double(bestPoint.goods2berth_dis) << endl;
                     if((double(bestPoint.dis + bestPoint.pre_dis) < containers[robot_index] * double(bestPoint.goods2berth_dis)) && bestPoint.x != -1)
                         {robot[robot_index].best_goods.push_back(bestPoint);}
                 }
@@ -134,7 +137,7 @@ double xjb_func(POINT x1){
 
 // x机器人基准, y机器人移动
 int collision_move_opposite(int robot_x, int robot_y, int y_move){
-    cerr << "Start check" << endl;
+    // cerr << "Start check" << endl;
     int move = -1;
     int x_next_move = -1;
     // cerr << "Start x_next_move" << endl;
@@ -199,10 +202,10 @@ vector<ROBOT_MOVE> collision_judge(vector<ROBOT_MOVE> v){
         // 发生碰撞，两个机器人交换位置
         if(collision_add[int2str(robot[i].x, robot[i].y)] > 0){
             if(next_x == robot[collision_add[int2str(robot[i].x, robot[i].y)] - 1].x && next_y == robot[collision_add[int2str(robot[i].x, robot[i].y)] - 1].y){
-                cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
+                // cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
                 int new_move = collision_move_opposite(collision_add[int2str(robot[i].x, robot[i].y)] - 1, i, v[i].move);
                 if(new_move == -1){
-                    cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
+                    // cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
                     new_move = collision_move_opposite(i, collision_add[int2str(robot[i].x, robot[i].y)] - 1, v[collision_add[int2str(robot[i].x, robot[i].y)] - 1].move);
                     if(new_move == -1) {
                         v[collision_add[int2str(robot[i].x, robot[i].y)] - 1].move = -1;
@@ -272,10 +275,10 @@ vector<ROBOT_MOVE> collision_judge(vector<ROBOT_MOVE> v){
         // 发生碰撞，两个机器人交换位置
         if(collision_add[int2str(robot[i].x, robot[i].y)] > 0){
             if(next_x == robot[collision_add[int2str(robot[i].x, robot[i].y)] - 1].x && next_y == robot[collision_add[int2str(robot[i].x, robot[i].y)] - 1].y){
-                cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
+                // cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
                 int new_move = collision_move_opposite(collision_add[int2str(robot[i].x, robot[i].y)] - 1, i, v[i].move);
                 if(new_move == -1){
-                    cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
+                    // cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
                     new_move = collision_move_opposite(i, collision_add[int2str(robot[i].x, robot[i].y)] - 1, v[collision_add[int2str(robot[i].x, robot[i].y)] - 1].move);
                     if(new_move == -1) {
                         v[collision_add[int2str(robot[i].x, robot[i].y)] - 1].move = -1;
@@ -300,10 +303,10 @@ vector<ROBOT_MOVE> collision_judge(vector<ROBOT_MOVE> v){
         else if(collision_add[int2str(next_x, next_y)] > 0){
             // cerr << collision_add[int2str(robot[i].x, robot[i].y)] - 1 << ' ' << i << endl;
             int new_move = collision_move_opposite(collision_add[int2str(next_x, next_y)] - 1, i, v[i].move);
-            cerr << "robot2 " << v[i].move << ' ' << new_move << endl;
+            // cerr << "robot2 " << v[i].move << ' ' << new_move << endl;
             if(new_move == -1){
                 new_move = collision_move_opposite(i, collision_add[int2str(next_x, next_y)] - 1, v[collision_add[int2str(next_x, next_y)] - 1].move);
-                cerr << "  " << new_move << endl;
+                // cerr << "  " << new_move << endl;
                 if(new_move == -1) {
                     v[collision_add[int2str(next_x, next_y)] - 1].move = -1;
                     collision_add[int2str(next_x, next_y)] = 0;
@@ -374,17 +377,26 @@ int select2best_point(POINT x1, POINT x2, double pow_index){
 
 void control_robot(int frame_id){
     vector<thread> threads;
+    // cerr << "Robot bfs" << endl;
     for(int i = 0; i < robot_num; i++){
+        // cerr << i << ' ' << robot[i].best_goods.size() << ' ' << robot[i].is_first << endl;
         if(robot[i].goods == 1) continue;
+        if(robot[i].best_goods.empty()) robot[i].is_first = 1;
+        
         Init_robot(robot[i], robot[i].is_first);
+        // if()
         int region = (robot[i].is_first == 1 ? 400 : 50);
+        // cerr << i << ' ' << region << ' ' ;
         // if(!robot[i].robot_find_goods_move.empty()) continue;
-        threads.emplace_back(thread(bfs_find_goods, i, frame_id, pow_index_base, region));
+        // threads.emplace_back(thread(bfs_find_goods, i, frame_id, pow_index_base, region));
+        bfs_find_goods(i, frame_id, pow_index_base, region);
     }
-    for(auto& t : threads){
-        t.join();
-    }
+    // cerr << endl;
+    // for(auto& t : threads){
+    //     t.join();
+    // }
     int flg = 1;
+    // cerr << "Find goods" << endl;
     while(flg){
         flg = 0;
         for(int i = 0; i < robot_num; i++){
@@ -406,6 +418,8 @@ void control_robot(int frame_id){
             }
         }
     }
+    // cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
+    // cerr << "Cal best path" << endl;
     for(int i = 0; i < robot_num; i++){
         if(robot[i].best_goods.empty() || robot[i].goods == 1) continue;
         // cerr << "CAL " << robot[i].best_goods.size() << endl;
@@ -417,6 +431,7 @@ void control_robot(int frame_id){
         // cerr << "cal best path " << i << ' ' << robot[i].robot_find_goods_move.size() << endl;
     }
     // 计算路线
+    // cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
     // cerr << "Cal the path" << endl;
     vector<ROBOT_MOVE> Robot_move;
     for(int i = 0; i < robot_num; i++){
@@ -427,7 +442,7 @@ void control_robot(int frame_id){
             if(!robot[i].collision_move.empty()){
                 move = robot[i].collision_move.top();
                 move = get_move_reverse(move);
-                cerr << move << endl;
+                // cerr << move << endl;
                 robot[i].collision_move.pop();
             }
             else if(!robot[i].robot_find_goods_move.empty()){
@@ -445,12 +460,14 @@ void control_robot(int frame_id){
     // cerr << Robot_move.size() << endl;
     // 碰撞检测
     if(Robot_move.size() > 0){
+        // cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
         // cerr << "Collision judge" << endl;
         // cerr << Robot_move.size() << endl;
         vector<ROBOT_MOVE> new_Robot_move = collision_judge(Robot_move);
 
 
     // 路线更新
+        // cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
         // cerr << "Update path" << endl;
         for(int i = 0; i < robot_num; i++){
             if(Robot_move[i].move == new_Robot_move[i].move) {
@@ -488,6 +505,7 @@ void control_robot(int frame_id){
             robot[i].is_first = 1;
             while(!robot[i].collision_move.empty()) robot[i].collision_move.pop();
             while(!robot[i].robot_find_goods_move.empty()) robot[i].robot_find_goods_move.pop();
+            // cerr << i << ' ' << robot[i].best_goods.size() << endl;
             while(!robot[i].best_goods.empty()) {
                 robot[i].best_goods.clear();
                 robot[i].pre_best_goods = POINT(-1, -1);
@@ -495,6 +513,7 @@ void control_robot(int frame_id){
             }
         }
     }
+    // cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
     // // 判断购买机器人的地点
     // if(robot_buy() == 1){
         

@@ -20,6 +20,7 @@ void Init()
     ProcessMap();
     read_berth();
     Init_shotpath_berth();
+    Init_berth_id();
     // Init_shotpath_delivery();
     scanf("%d", &boat_capacity);
     char okk[100];
@@ -64,18 +65,29 @@ int main()
     {
         // cerr << frame_id << endl;
         Input();
-        if(money >= robot_price && robot_num < 5){
+        if(money >= robot_price && robot_num < 20){
             printf("lbot %d %d\n", robot_purchase_point[0].first, robot_purchase_point[0].second);
             Init_containers();
+            // money = money - 2000;
         }
 
-        if(money >= boat_price && boat_num < 1){
+        if(money >= boat_price && boat_num < 5){
             printf("lboat %d %d\n", boat_purchase_point[0].first, boat_purchase_point[0].second);
+            auto it = find(robot_berth.begin(), robot_berth.end(), boat_num);
+            if(it == robot_berth.end()) robot_berth.push_back(boat_num);
+            // if(robot_berth.size() < berth_num) robot_berth.push_back(boat_num);
         }
+        cerr << "Robot" << endl;
         control_robot(frame_id);
+        cerr << "Ship" << endl;
         control_ship(frame_id);
+        cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
         for(int i = 0; i < boat_num; i++){
             cerr << boat[i].goods_num << ' ';
+        }
+        cerr << endl;
+        for(int i = 0; i < robot_berth.size(); i++){
+            cerr << robot_berth[i] << ' ';
         }
         cerr << endl;
 

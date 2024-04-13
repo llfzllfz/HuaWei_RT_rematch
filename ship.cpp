@@ -2,6 +2,7 @@
 #include "berth.h"
 #include "map.h"
 #include <bits/stdc++.h>
+#include "robot.h"
 using namespace std;
 
 BOAT boat[30];
@@ -40,22 +41,22 @@ void collision_point_visit(int x, int y, int direction, int visit_){
 		}
 	}
 	else if(direction == 1){
-		for(int i = x; i <= x+2; i++){
-			for(int j = y-1; j <= y; j++){
+		for(int i = x - 1; i <= x; i++){
+			for(int j = y-2; j <= y; j++){
 				visit_ship[i][j] = visit_;
 			}
 		}
 	}
 	else if(direction == 2){
 		for(int i = x-2; i <= x; i++){
-			for(int j = y-1; j <= y; j++){
+			for(int j = y; j <= y+1; j++){
 				visit_ship[i][j] = visit_;
 			}
 		}
 	}
-	else{
-		for(int i = x-2; i <= x; i++){
-			for(int j = y; j <= y+1; j++){
+	else if(direction == 3){
+		for(int i = x; i <= x + 2; i++){
+			for(int j = y - 1; j <= y; j++){
 				visit_ship[i][j] = visit_;
 			}
 		}
@@ -72,22 +73,22 @@ int collision_point_main_channel(int x, int y, int direction){
 		}
 	}
 	else if(direction == 1){
-		for(int i = x; i <= x+2; i++){
-			for(int j = y-1; j <= y; j++){
+		for(int i = x - 1; i <= x; i++){
+			for(int j = y-2; j <= y; j++){
 				if(grid_copy[i][j] != '~' && grid_copy[i][j] != 'B' && grid_copy[i][j] != 'K') return 1;
 			}
 		}
 	}
 	else if(direction == 2){
 		for(int i = x-2; i <= x; i++){
-			for(int j = y-1; j <= y; j++){
+			for(int j = y; j <= y+1; j++){
 				if(grid_copy[i][j] != '~' && grid_copy[i][j] != 'B' && grid_copy[i][j] != 'K') return 1;
 			}
 		}
 	}
-	else{
-		for(int i = x-2; i <= x; i++){
-			for(int j = y; j <= y+1; j++){
+	else if(direction == 3){
+		for(int i = x; i <= x + 2; i++){
+			for(int j = y - 1; j <= y; j++){
 				if(grid_copy[i][j] != '~' && grid_copy[i][j] != 'B' && grid_copy[i][j] != 'K') return 1;
 			}
 		}
@@ -105,22 +106,22 @@ int collision_point_(int x, int y, int direction){
 		}
 	}
 	else if(direction == 1){
-		for(int i = x; i <= x+2; i++){
-			for(int j = y-1; j <= y; j++){
+		for(int i = x - 1; i <= x; i++){
+			for(int j = y-2; j <= y; j++){
 				if(visit_ship[i][j] == 1) return 1;
 			}
 		}
 	}
 	else if(direction == 2){
 		for(int i = x-2; i <= x; i++){
-			for(int j = y-1; j <= y; j++){
+			for(int j = y; j <= y+1; j++){
 				if(visit_ship[i][j] == 1) return 1;
 			}
 		}
 	}
-	else{
-		for(int i = x-2; i <= x; i++){
-			for(int j = y; j <= y+1; j++){
+	else if(direction == 3){
+		for(int i = x; i <= x + 2; i++){
+			for(int j = y - 1; j <= y; j++){
 				if(visit_ship[i][j] == 1) return 1;
 			}
 		}
@@ -134,9 +135,9 @@ vector<BOAT_MOVE> boat_collision_judge(vector<BOAT_MOVE> v){
 		collision_point_visit(boat[i].x, boat[i].y, boat[i].direction, 1);
 	}
 	// 前往交货点的船舶优先
+	// cerr << "Submit1"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 	for(int i = 0; i < boat_num; i++){
 		if(boat[i].status != 0) continue;
-		
 		// 前往交货点的船舶优先
 		if(grid_copy[boat[i].target_x][boat[i].target_y] != 'T') continue;
 		int move = v[i].move;
@@ -145,6 +146,7 @@ vector<BOAT_MOVE> boat_collision_judge(vector<BOAT_MOVE> v){
 		if(move == -1) continue;
 		collision_point_visit(boat[i].x, boat[i].y, boat[i].direction, 0);
 		// 如果当前船舶所有点和船舶移动后所有点都在主航道，则跳过碰撞检测
+		// cerr << "Submit11"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 		if(collision_point_main_channel(boat[i].x, boat[i].y, boat[i].direction) == 0){
 			change_point(next_x, next_y, boat[i].direction, move);
 			if(collision_point_main_channel(next_x, next_y, get_rot_direction(boat[i].direction, move)) == 0){
@@ -152,16 +154,22 @@ vector<BOAT_MOVE> boat_collision_judge(vector<BOAT_MOVE> v){
 				collision_point_visit(next_x, next_y, get_rot_direction(boat[i].direction, move), 0);
 			}
 		}
+		// cerr << "Submit12"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 		next_x = boat[i].x;
 		next_y = boat[i].y;
 		change_point(next_x, next_y, boat[i].direction, move);
 		// 计算船舶移动后所有点是否有碰撞，没有就确认当前移动方式，有碰撞则转移角度。（顺时针旋转，移动，逆时针旋转）如果所有方式均会发生碰撞，则停帧
 		if(collision_point_(next_x, next_y, get_rot_direction(boat[i].direction, move)) == 0){
+			// cerr << "Submit121 "  << 0 << ' ' << robot[0].best_goods.size() << endl;
 			// 无碰撞
 			collision_point_visit(boat[i].x, boat[i].y, boat[i].direction, 0);
+			// cerr << "Submit122 "  << 0 << ' ' << robot[0].best_goods.size() << endl;
+			// cerr << next_x << ' ' << next_y << ' ' << boat[i].direction << ' ' << move << endl;
 			collision_point_visit(next_x, next_y, get_rot_direction(boat[i].direction, move), 1);
+			// cerr << "Submit123 "  << 0 << ' ' << robot[0].best_goods.size() << endl;
 		}
 		else{
+			// cerr << "Submit13"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 			// 发生了碰撞
 			// 当前ship换方式
 			for(int j = 0; j < 3; j++){
@@ -190,14 +198,16 @@ vector<BOAT_MOVE> boat_collision_judge(vector<BOAT_MOVE> v){
 		}
 	}
 	// 判断剩余的船舶
+	// cerr << "Submit2"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 	for(int i = 0; i < boat_num; i++){
-		if(boat[i].status == 0) continue;
+		if(boat[i].status != 0) continue;
 		if(grid_copy[boat[i].target_x][boat[i].target_y] == 'T') continue;
 		int move = v[i].move;
 		int next_x = boat[i].x;
 		int next_y = boat[i].y;
 		if(move == -1) continue;
 		collision_point_visit(boat[i].x, boat[i].y, boat[i].direction, 0);
+		// cerr << "Submit21"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 		// 如果当前船舶所有点和船舶移动后所有点都在主航道，则跳过碰撞检测
 		if(collision_point_main_channel(boat[i].x, boat[i].y, boat[i].direction) == 0){
 			change_point(next_x, next_y, boat[i].direction, move);
@@ -206,6 +216,7 @@ vector<BOAT_MOVE> boat_collision_judge(vector<BOAT_MOVE> v){
 				collision_point_visit(next_x, next_y, get_rot_direction(boat[i].direction, move), 0);
 			}
 		}
+		// cerr << "Submit22"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 		next_x = boat[i].x;
 		next_y = boat[i].y;
 		change_point(next_x, next_y, boat[i].direction, move);
@@ -216,6 +227,7 @@ vector<BOAT_MOVE> boat_collision_judge(vector<BOAT_MOVE> v){
 			collision_point_visit(next_x, next_y, get_rot_direction(boat[i].direction, move), 1);
 		}
 		else{
+			// cerr << "Submit23"  << 0 << ' ' << robot[0].best_goods.size() << endl;
 			// 发生了碰撞
 			// 当前ship换方式
 			for(int j = 0; j < 3; j++){
@@ -287,7 +299,7 @@ void change_point(int &x, int &y, int direction, int rot){
 			y = y + 2;
 		}
 		else if(direction == 1){
-			x = y - 2;
+			y = y - 2;
 		}
 		else if(direction == 2){
 			x = x - 2;
@@ -345,6 +357,23 @@ int check_direction(int x, int y, int ux, int uy, int direction){
     	int next_y = y;
     	change_point(next_x, next_y, direction, 1);
     	if(check_path2delivery(next_x, next_y, get_rot_direction(direction, 1)) == 1) return 1;
+    }
+    // 差两个的时候尝试触发顺时针旋转
+    if(abs(ux - x) == 2){
+    	int next_x = x;
+    	int next_y = y;
+    	change_point(next_x, next_y, direction, 0);
+    	if(next_y == uy && abs(ux - next_x) <= abs(ux - x)){
+    		if(check_path2delivery(next_x, next_y, get_rot_direction(direction, 0)) == 1) return 0;
+    	}
+    }
+    if(abs(uy - y) == 2){
+    	int next_x = x;
+    	int next_y = y;
+    	change_point(next_x, next_y, direction, 0);
+    	if(next_x == ux && abs(uy - next_y) <= abs(uy - y)){
+    		if(check_path2delivery(next_x, next_y, get_rot_direction(direction, 0)) == 1) return 0;
+    	}
     }
     if(dx != 0 && dy != 0){
 	    // cerr << dx << ' ' << dy << endl;
@@ -405,6 +434,18 @@ int check_direction(int x, int y, int ux, int uy, int direction){
 	    	// cerr << i << ' ' << next_x << ' ' << next_y << ' ' << get_move_reverse(i) << ' ' << check_path2delivery(next_x, next_y, get_move_reverse(i)) << endl;
 	    	if(check_path2delivery(next_x, next_y, get_move_reverse(i)) == 1) return rot;
 	    }
+	    for(int i = 0; i < 4; i++){
+	    	if(i == direction) continue;
+	    	if(get_move_reverse(i) == direction) continue;
+	    	// cerr << i << endl;
+	    	// cerr << direction << ' ' << get_move_reverse(i) << endl;
+	    	int rot = get_direction_rot(direction, get_move_reverse(i));
+	    	int next_x = x;
+	    	int next_y = y;
+	    	change_point(next_x, next_y, direction, rot);
+	    	// cerr << i << ' ' << next_x << ' ' << next_y << ' ' << get_move_reverse(i) << ' ' << check_path2delivery(next_x, next_y, get_move_reverse(i)) << endl;
+	    	if(check_path2delivery(next_x, next_y, get_move_reverse(i)) == 1) return rot;
+	    }
 	}
 	else{
 		int move = get_move(dx, dy);
@@ -417,7 +458,9 @@ int check_direction(int x, int y, int ux, int uy, int direction){
 		else if(get_rot_direction(direction, 0) == move){
 			int next_x = x;
 	    	int next_y = y;
+	    	// cerr << next_x << ' ' << next_y << endl;
 	    	change_point(next_x, next_y, direction, 0);
+	    	// cerr <<  ' ' << next_x << ' ' << next_y << ' ' << direction << ' ' << get_rot_direction(direction, 0) << endl;
 	    	if(check_path2delivery(next_x, next_y, get_rot_direction(direction, 0)) == 1) return 0;
 		}
 		else if(get_rot_direction(direction, 1) == move){
@@ -446,27 +489,26 @@ void control_ship(int frame_id){
 	for(int i = 0; i < boat_num; i++){
 		if(boat[i].status == 1) continue;
 		if(boat[i].goods_num == boat_capacity && grid_copy[boat[i].x][boat[i].y] == 'B'){
-			boat[i].target_x = delivery_point[0].first;
-			boat[i].target_y = delivery_point[0].second;
+			boat[i].target_x = delivery_point[i % delivery_point.size()].first;
+			boat[i].target_y = delivery_point[i % delivery_point.size()].second;
 			boat[i].to_delivery = 1;
-		}
-		else if(grid_copy[boat[i].x][boat[i].y] == 'B'){
-			boat[i].target_x = -1;
-			boat[i].target_y = -1;
 		}
 		if(grid_copy[boat[i].x][boat[i].y] == 'T'){
 			boat[i].to_delivery = 0;
-			boat[i].target_x = berth[0].x;
-			boat[i].target_y = berth[0].y;
+			boat[i].target_x = berth[i % berth_num].x;
+			boat[i].target_y = berth[i % berth_num].y;
+			boat[i].berth = (i % berth_num);
 		}
 		if(grid_copy[boat[i].x][boat[i].y] == 'S' && boat[i].target_x == -1){
-			boat[i].target_x = berth[0].x;
-			boat[i].target_y = berth[0].y;
+			boat[i].target_x = berth[i % berth_num].x;
+			boat[i].target_y = berth[i % berth_num].y;
+			boat[i].berth = (i % berth_num);
 		}
 	}
 	for(int i = 0; i < boat_num; i++){
 		cerr << boat[i].x << ' ' << boat[i].y << ' ' << boat[i].target_x << ' ' << boat[i].target_y << ' ' << boat[i].direction << endl;
 	}
+	// cerr << 0 << ' ' << robot[0].best_goods.size() << endl;
 	vector<BOAT_MOVE> boat_collision_move;
 	// 船舶航行路线
 	for(int i = 0; i < boat_num; i++){
@@ -481,31 +523,6 @@ void control_ship(int frame_id){
 		// 矫正航向
 		cerr << check_direction(boat[i].x, boat[i].y, boat[i].target_x, boat[i].target_y, boat[i].direction) << endl;
 		boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, boat[i].direction, check_direction(boat[i].x, boat[i].y, boat[i].target_x, boat[i].target_y, boat[i].direction)));
-		// cerr << check_direction(boat[i].x, boat[i].y, boat[i].target_x, boat[i].target_y, boat[i].direction) << endl;
-		// cerr << boat_collision_move[i].move << endl;
-		// if(boat[i].status == 1) {
-		// 	boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, -1));
-		// 	continue;
-		// }
-		// // 矫正航向
-		// int next_move = shotpath_delivery[boat[i].delivery][boat[i].x][boat[i].y];
-		// if(get_move_reverse(boat[i].direction) == next_move){
-		// 	int fale_direction = direction2direction(boat[i].direction);
-
-		// 	if(check_path2delivery(boat[i].x, boat[i].y, (fale_direction + 1) % 4) == 1) boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, 0));
-		// 	else if(check_path2delivery(boat[i].x, boat[i].y, (fale_direction - 1 + 4) % 4) == 1) boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, 1));
-		// 	else if(check_path2delivery(boat[i].x, boat[i].y, fale_direction) == 1) boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, 2));
-		// 	else boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, -1));
-		// }
-		// else if(){
-
-		// }
-		// else if(){
-
-		// }
-		// else{
-		// 	boat_collision_move.push_back(BOAT_MOVE(boat[i].x, boat[i].y, 2));
-		// }
 	}
 	// 船舶碰撞
 	vector<BOAT_MOVE> new_boat_collision_move = boat_collision_judge(boat_collision_move);
@@ -519,8 +536,11 @@ void control_ship(int frame_id){
 	// 船舶控制
 	for(int i = 0; i < boat_num; i++){
 		if(boat[i].status == 1) continue;
-		if(grid_copy[boat[i].x][boat[i].y] == 'K' && boat[i].to_delivery == 0){
+		if(grid_copy[boat[i].x][boat[i].y] == 'K' && boat[i].to_delivery == 0 && boat[i].berth == grid_copy_berth_id[boat[i].x][boat[i].y] && boat[i].berth != -1){
 			printf("berth %d\n", i);
+			boat[i].target_x = -1;
+			boat[i].target_y = -1;
+			boat[i].berth = -1;
 		}
 		// else if(grid_copy[boat[i].x][boat[i].y] == 'B' && boat[i].goods_num == 0){
 		// 	printf("berth %d\n", i);
@@ -533,6 +553,9 @@ void control_ship(int frame_id){
 		}
 		else if(boat_collision_move[i].move == 0){
 			printf("rot %d %d\n", i, 0);
+		}
+		if(boat[i].goods_num == 0){
+			cerr << i << ' ' << boat[i].x << ' ' << boat[i].y << ' ' << boat[i].berth << ' ' << grid_copy_berth_id[boat[i].x][boat[i].y] << endl;
 		}
 	}
 }

@@ -4,6 +4,7 @@
 
 char grid[200][200];
 char grid_copy[200][200];
+int grid_copy_berth_id[200][200];
 vector<Goods> goods;
 unordered_map<string, int> goods_value_mp;
 unordered_map<string, int> goods_time_mp;
@@ -245,5 +246,41 @@ void Init_shotpath_delivery(){
 	memset(shotpath_delivery, -1, sizeof(shotpath_delivery));
 	for(int i = 0; i < delivery_point.size(); i++){
 		Init_shotpath_delivery_cal_path(delivery_point[i].first, delivery_point[i].second, i);
+	}
+}
+
+int check_berth_id_point(int x, int y){
+	if(x < 0 || x >= N) return -1;
+    if(y < 0 || y >= N) return -1;
+    char tmp = grid_copy[x][y];
+    if(tmp == 'B' || tmp == 'K') return 1;
+    return -1;
+}
+
+void bfs_berth_id(int x, int y, int berth_id){
+	memset(visits, 0, sizeof(visits));
+	queue<POINT> q;
+	q.push(POINT(x, y));
+	visits[x][y] = 1;
+	grid_copy_berth_id[x][y] = berth_id;
+	while(!q.empty()){
+		POINT now = q.front();
+		q.pop();
+		for(int i = 0; i < 4; i++){
+			int next_x = now.x + robot_move_x[i];
+			int next_y = now.y + robot_move_y[i];
+			if(check_berth_id_point(next_x, next_y) == -1) continue;
+			if(visits[next_x][next_y] == 1) continue;
+			grid_copy_berth_id[next_x][next_y] = berth_id;
+			q.push(POINT(next_x, next_y));
+			visits[next_x][next_y] = 1;
+		}
+	}
+}
+
+void Init_berth_id(){
+	memset(grid_copy_berth_id, -1, sizeof(grid_copy_berth_id));
+	for(int i = 0; i < berth_num; i++){
+		bfs_berth_id(berth[i].x, berth[i].y, i);
 	}
 }
